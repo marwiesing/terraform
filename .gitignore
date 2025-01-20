@@ -19,3 +19,5 @@ crash.log
 .terraformrc
 terraform.rc
 
+# Ignore GIT Repo: https://github.com/wardviaene/terraform-course.git
+terraform-course/
