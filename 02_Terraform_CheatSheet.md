@@ -140,3 +140,60 @@ Here’s a comprehensive cheat sheet for **Terraform commands** categorized by f
 4. Regularly run `terraform validate` and `terraform fmt` to maintain clean and error-free code.
 
 This cheatsheet can be a quick reference for your Terraform work! Let me know if you need further clarification or examples.
+
+
+----
+
+
+# Terraform Aliases Cheatsheet
+
+| Alias   | Command | Description |
+|---------|---------|-------------|
+| `tf`    | `terraform` | Shortcut for the Terraform command |
+| `tfi`   | `terraform init` | Initialize a Terraform working directory |
+| `tfv`   | `terraform validate` | Validate the configuration files |
+| `tfp`   | `terraform plan` | Show an execution plan |
+| `tfa`   | `terraform apply` | Apply the changes required to reach the desired state |
+| `tfaa`  | `terraform apply -auto-approve` | Apply changes without manual confirmation |
+| `tfd`   | `terraform destroy` | Destroy the Terraform-managed infrastructure |
+| `tfda`  | `terraform destroy -auto-approve` | Destroy resources without manual confirmation |
+
+## Format and State Management
+| Alias   | Command | Description |
+|---------|---------|-------------|
+| `tff`   | `terraform fmt -recursive` | Format Terraform files in the current directory |
+| `tfs`   | `terraform state list` | List resources in the state file |
+| `tft`   | `terraform taint` | Mark a resource for recreation |
+| `tfut`  | `terraform untaint` | Remove taint from a resource |
+
+## Output and Logs
+| Alias   | Command | Description |
+|---------|---------|-------------|
+| `tfo`   | `terraform output` | Show output values from the state file |
+| `tfdl`  | `TF_LOG=DEBUG terraform apply` | Debug Terraform with logs enabled |
+
+## Version Management
+| Alias   | Command | Description |
+|---------|---------|-------------|
+| `tfv`   | `terraform version` | Check the Terraform version |
+
+## Workspace Management
+| Alias   | Command | Description |
+|---------|---------|-------------|
+| `tfw`   | `terraform workspace` | Manage Terraform workspaces |
+| `tfws`  | `terraform workspace show` | Show the current workspace |
+| `tfwn`  | `terraform workspace new` | Create a new workspace |
+| `tfwd`  | `terraform workspace delete` | Delete a workspace |
+
+## Terraform Modules
+| Alias   | Command | Description |
+|---------|---------|-------------|
+| `tfmod` | `terraform get -update` | Update modules in the current configuration |
+
+## Miscellaneous
+| Alias   | Command | Description |
+|---------|---------|-------------|
+| `tfch`  | `terraform check` | Validate HCL without executing commands |
+| `tfsec` | `terraform validate && terraform plan` | Combined validate and plan |
+| `tfdc`  | `terraform-docs markdown table .` | Use terraform-docs to generate documentation for modules |
+
