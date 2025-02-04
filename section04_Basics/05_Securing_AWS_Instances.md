@@ -1,8 +1,4 @@
-Here's an enhanced and detailed version of the transcript with additional explanations, examples, and references to relevant resources:
-
----
-
-# **Securing AWS Instances with SSH, Security Groups, and Key Pairs**
+## **Securing AWS Instances with SSH, Security Groups, and Key Pairs**
 #### **Resources**
 - 🔗 [Terraform AWS Security Group](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group)
 - 🔗 [Terraform AWS Key Pair](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/key_pair)
@@ -11,7 +7,7 @@ Here's an enhanced and detailed version of the transcript with additional explan
 
 ---
 
-## **Introduction**
+### **Introduction**
 Now that we have successfully launched an AWS instance inside a **VPC with public subnets**, we need to configure **secure access** to it.  
 Currently, we **cannot SSH into the instance** because:
 1. **No SSH key** is assigned to the instance.
@@ -24,10 +20,10 @@ To fix this, we will:
 
 ---
 
-## **Step 1: Creating a Security Group**
+### **Step 1: Creating a Security Group**
 A **security group** acts as a virtual firewall that controls inbound and outbound traffic.
 
-### **1.1 Define a Security Group**
+#### **1.1 Define a Security Group**
 Create a new file **`security-group.tf`**:
 
 ```hcl
@@ -59,12 +55,12 @@ resource "aws_security_group" "allow_ssh" {
 }
 ```
 
-### **1.2 Explanation**
+#### **1.2 Explanation**
 - The **ingress rule** allows SSH (`port 22`) from **any IP** (`0.0.0.0/0`).
 - The **egress rule** allows all outbound traffic.
 - It is **attached to our VPC** via `module.vpc.vpc_id`.
 
-### **1.3 Apply the Security Group**
+#### **1.3 Apply the Security Group**
 ```sh
 terraform apply
 ```
@@ -72,7 +68,7 @@ This will create a **new security group** in our VPC.
 
 ---
 
-## **Step 2: Attaching the Security Group to the EC2 Instance**
+### **Step 2: Attaching the Security Group to the EC2 Instance**
 Now that the security group exists, we need to **attach it to our EC2 instance**.
 
 Modify **`instance.tf`**:
@@ -93,11 +89,11 @@ resource "aws_instance" "example" {
 }
 ```
 
-### **2.1 Explanation**
+#### **2.1 Explanation**
 - **`vpc_security_group_ids`** expects a **list of security group IDs**, so we provide `[aws_security_group.allow_ssh.id]`.
 - This allows SSH access **only if the security group is applied**.
 
-### **2.2 Apply the Changes**
+#### **2.2 Apply the Changes**
 ```sh
 terraform apply
 ```
@@ -105,10 +101,10 @@ Terraform will update the instance **without recreating it**.
 
 ---
 
-## **Step 3: Creating an SSH Key Pair**
+### **Step 3: Creating an SSH Key Pair**
 AWS requires a **key pair** to log in securely to EC2 instances.
 
-### **3.1 Generating an SSH Key**
+#### **3.1 Generating an SSH Key**
 On **Linux/macOS**:
 ```sh
 ssh-keygen -t rsa -b 4096 -f mykey
@@ -123,7 +119,7 @@ ssh-keygen.exe -t rsa -b 4096 -f mykey
 ```
 Or use **PuTTYgen** to generate SSH keys.
 
-### **3.2 Upload the Public Key to AWS**
+#### **3.2 Upload the Public Key to AWS**
 Modify **`keypair.tf`**:
 ```hcl
 resource "aws_key_pair" "mykey" {
@@ -136,7 +132,7 @@ resource "aws_key_pair" "mykey" {
 }
 ```
 
-### **3.3 Apply the Key Pair**
+#### **3.3 Apply the Key Pair**
 ```sh
 terraform apply
 ```
@@ -144,7 +140,7 @@ This will upload `mykey.pub` to AWS.
 
 ---
 
-## **Step 4: Assigning the Key Pair to the EC2 Instance**
+### **Step 4: Assigning the Key Pair to the EC2 Instance**
 Modify **`instance.tf`** to include the key:
 ```hcl
 resource "aws_instance" "example" {
@@ -163,7 +159,7 @@ resource "aws_instance" "example" {
 }
 ```
 
-### **4.1 Apply the Changes**
+#### **4.1 Apply the Changes**
 ```sh
 terraform apply
 ```
@@ -171,10 +167,13 @@ This will **recreate the instance** with the assigned **key pair**.
 
 ---
 
-## **Step 5: Connecting to the Instance via SSH**
+#### **Step 5 - Connecting to the Instance via SSH**
 Now that the key pair is attached, we can SSH into the instance.
 
-### **5.1 Get the Public IP**
+---
+
+#### **5.1 Get the Public IP**
+Run the following command to retrieve the public IP of your instance:
 ```sh
 terraform output public_ip
 ```
@@ -183,23 +182,64 @@ Example output:
 54.123.45.67
 ```
 
-### **5.2 SSH into the Instance**
+---
+
+#### **5.2 SSH into the Instance**
+There are **two ways** to connect to your EC2 instance depending on how you store your SSH private key.
+
+##### **Option 1: Using the `-i` Flag (Recommended if Private Key is Not in `~/.ssh/`)**
+If your private key **remains in the project directory**, you must specify it explicitly:
 ```sh
-ssh -i mykey ubuntu@54.123.45.67
+ssh -i sshkey ubuntu@54.123.45.67
 ```
-- `-i mykey` → Specifies the **private key**.
-- `ubuntu@<public_ip>` → Default username for Ubuntu AMIs.
-
-For **Windows** users:
-1. Use **PuTTY** and load `mykey.ppk` (convert `.pem` with PuTTYgen).
-2. Enter `ubuntu@54.123.45.67` in **Host Name**.
-3. Click **Open**.
-
-✅ **Success! You are now logged into the instance.**
+**Explanation:**
+- `-i sshkey` → Specifies the private key (`sshkey` is the private key file, not `.pub`).
+- `ubuntu@54.123.45.67` → Uses `ubuntu` as the default username for Ubuntu AMIs.
 
 ---
 
-## **Step 6: Destroying Resources to Avoid Costs**
+##### **Option 2: Moving the Private Key to the Default SSH Directory**
+If you prefer a **simpler SSH command**, move the private key to `~/.ssh/` and rename it to `id_rsa` (or `id_ed25519` if using an Ed25519 key):
+
+```sh
+mv sshkey ~/.ssh/id_rsa
+chmod 600 ~/.ssh/id_rsa  # Ensure correct permissions
+```
+Now, you can SSH into the instance without the `-i` flag:
+```sh
+ssh ubuntu@54.123.45.67
+```
+
+---
+
+#### **5.3 SSH Connection for Windows Users**
+If you are using **Windows**, you have two options:
+
+##### **Option 1: Using OpenSSH (Windows 10+ or Git Bash)**
+If you have OpenSSH installed, use:
+```sh
+ssh -i sshkey ubuntu@54.123.45.67
+```
+(Or move the key to `~/.ssh/` and connect without `-i`.)
+
+##### **Option 2: Using PuTTY**
+1. Convert `sshkey` to `.ppk` format using **PuTTYgen**.
+2. Open **PuTTY** and:
+   - Enter **`ubuntu@54.123.45.67`** in **Host Name**.
+   - Go to **Connection > SSH > Auth**, and **load the `.ppk` private key**.
+   - Click **Open** to connect.
+
+---
+
+✅ **Success! You are now logged into the instance.**  
+To exit, type:
+```sh
+exit
+```
+
+---
+
+### **Step 6: Destroying Resources to Avoid Costs**
 To clean up:
 ```sh
 terraform destroy
@@ -212,7 +252,7 @@ This removes:
 
 ---
 
-## **Key Takeaways**
+### **Key Takeaways**
 ✅ **Security groups control inbound/outbound traffic**.  
 ✅ **Use SSH key pairs to secure logins**.  
 ✅ **Terraform can read SSH keys from local files**.  
@@ -221,7 +261,7 @@ This removes:
 
 ---
 
-## **Next Steps**
+### **Next Steps**
 In the next lecture, we will:
 - Install software on the instance automatically.
 - Use **Terraform provisioning** to configure EC2 instances.
